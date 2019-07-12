@@ -8,14 +8,19 @@ window.config = {
     dicomWeb: [
       {
         name: 'DCM4CHEE',
-        wadoUriRoot: 'https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/wado',
-        qidoRoot: 'https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs',
-        wadoRoot: 'https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs',
+        wadoUriRoot:
+          'http://130.92.124.234::8080/dcm4chee-arc/aets/DCM4CHEE/wado',
+        qidoRoot: 'http://130.92.124.234:8080/dcm4chee-arc/aets/DCM4CHEE/rs',
+        wadoRoot: 'http://130.92.124.234:8080/dcm4chee-arc/aets/DCM4CHEE/rs',
         qidoSupportsIncludeField: true,
         imageRendering: 'wadors',
         thumbnailRendering: 'wadors',
         requestOptions: {
           requestFromBrowser: true,
+          auth: 'orthanc:orthanc',
+          logRequests: true,
+          logResponses: false,
+          logTiming: true,
         },
       },
     ],
