@@ -30,7 +30,7 @@ git fetch upstream
 from within the OHIF-Viewer folder. Changes to the viewer are pushed to a forked version of the Viewer, 
 which allows to open merge requests later on. 
 
-![](./images/structure.png)
+![](structure.png)
 
 The overall structure looks as follows: 
 
