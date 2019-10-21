@@ -24,11 +24,17 @@ See the Debug section below for common issues during installation.
 ## Maintain repo and modify Viewer
 The OHIF-Viewer project is integrated into 3dPicsWeb as a submodule supporting a triangular workflow. 
 The OHIF-Viewer can fetch changes from the official OHIF-Viewer using 
-```shellyar
+```shell
 git fetch upstream 
 ```
 from within the OHIF-Viewer folder. Changes to the viewer are pushed to a forked version of the Viewer, 
 which allows to open merge requests later on. 
+
+Merge the changes from upstream/master into your local master branch. This brings your fork's master branch into sync with the upstream repository, without losing your local changes.
+
+```shell
+git merge upstream/master
+```
 
 ![](structure.png)
 
