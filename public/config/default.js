@@ -16,8 +16,7 @@ window.config = {
         imageRendering: 'wadors',
         thumbnailRendering: 'wadors',
         requestOptions: {
-          requestFromBrowser: true,
-          auth: 'orthanc:orthanc',
+          auth: 'admin:admin',
           logRequests: true,
           logResponses: false,
           logTiming: true,
@@ -25,6 +24,9 @@ window.config = {
       },
     ],
   },
+  proxy: {
+    enabled: true
+  }, 
   // Extensions should be able to suggest default values for these?
   // Or we can require that these be explicitly set
   hotkeys: [
