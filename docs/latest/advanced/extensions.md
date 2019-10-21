@@ -140,8 +140,8 @@ children: PropTypes.node,
 customProps: PropTypes.object
 ```
 
-Viewport components are managed by the `LayoutManager`. Which Viewport component
-is used depends on:
+Viewport components are managed by the `ViewportGrid` Component. Which Viewport
+component is used depends on:
 
 - The Layout Configuration
 - Registered SopClassHandlers
@@ -152,14 +152,15 @@ is used depends on:
 <center><i>An example of three Viewports</i></center>
 
 For a complete example implementation,
-[check out the OHIFCornerstoneViewport](https://github.com/OHIF/Viewers/blob/react/extensions/ohif-cornerstone-extension/src/OHIFCornerstoneViewport.js).
+[check out the OHIFCornerstoneViewport](https://github.com/OHIF/Viewers/blob/master/extensions/cornerstone/src/OHIFCornerstoneViewport.js).
 
 #### Toolbar
 
 An extension can register a Toolbar Module by providing a `getToolbarModule()`
 method that returns a React Component. The component does not receive any props.
 If you want to modify or react to state, you will need to connect to the redux
-store.
+store. The given toolbar must determine its set of elements and the context of
+them. The set of elements will be listed on toolbar `definitions`.
 
 ![Toolbar Extension](../assets/img/extensions-toolbar.gif)
 
@@ -168,7 +169,39 @@ store.
 Toolbar components are rendered in the `ToolbarRow` component.
 
 For a complete example implementation,
-[check out the OHIFCornerstoneViewport's Toolbar Module](https://github.com/OHIF/Viewers/blob/react/extensions/ohif-cornerstone-extension/src/ToolbarModule.js).
+[check out the OHIFCornerstoneViewport's Toolbar Module](https://github.com/OHIF/Viewers/blob/master/extensions/cornerstone/src/toolbarModule.js).
+
+##### Toolbar Custom Component
+
+Toolbar elements can define its own custom react component to be consumed when
+rendering it. So far, it accepts `Functional` and `Class` Components. For that,
+you just need to expose your `CustomToolbarComponent` as the value of key
+`CustomComponent`. In case the property `CustomComponent` is not present, a
+default toolbar component will be used to render it. See bellow
+
+```js
+definitions: [
+...
+    {
+        id: 'Custom',
+        label: 'Custom',
+        icon: 'custom-icon',
+        CustomComponent: CustomToolbarComponent,
+    }
+...
+]
+
+```
+
+`CustomComponent` components will receive the following props:
+
+- parentContext: parent context. (In most of the cases it will be a ToolbarRow
+  instance)
+- toolbarClickCallback: callback method when clicking on toolbar
+- button: its own definition object
+- key: react key prop
+- activeButtons: list of active elements
+- isActive: if current
 
 #### SopClassHandler
 
@@ -198,7 +231,7 @@ _app.js_
 
 ```js
 import { createStore, combineReducers } from 'redux';
-import OHIF from 'ohif-core';
+import OHIF from '@ohif/core';
 import OHIFCornerstoneExtension from 'ohif-cornerstone-extension';
 
 const combined = combineReducers(OHIF.redux.reducers);
@@ -214,8 +247,8 @@ ExtensionManager.registerExtensions(store, extensions);
 
 A small number of powerful extensions for popular use cases are maintained by
 OHIF. They're co-located in the
-[`OHIF/Viewers`](https://github.com/OHIF/Viewers/tree/react/) repository, in the
-top level [`extensions/`](https://github.com/OHIF/Viewers/tree/react/extensions)
+[`OHIF/Viewers`](https://github.com/OHIF/Viewers) repository, in the top level
+[`extensions/`](https://github.com/OHIF/Viewers/tree/master/extensions)
 directory.
 
 {% include "./_maintained-extensions-table.md" %}
@@ -225,6 +258,6 @@ directory.
 -->
 
 <!-- prettier-ignore-start -->
-[example-ext-src]: https://github.com/OHIF/Viewers/blob/master/extensions/_ohif-example-extension/src/index.js)
-[module-types]: https://github.com/OHIF/ohif-core/blob/43c08a29eff3fb646a0e83a03a236ddd84f4a6e8/src/plugins.js#L1-L6
+[example-ext-src]: https://github.com/OHIF/Viewers/tree/master/extensions/_example/src
+[module-types]: https://github.com/OHIF/Viewers/blob/master/platform/core/src/extensions/MODULE_TYPES.js
 <!-- prettier-ignore-end -->
