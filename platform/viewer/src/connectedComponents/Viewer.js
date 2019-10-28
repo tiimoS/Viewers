@@ -197,11 +197,9 @@ class Viewer extends Component {
 
 
       this.measurementApi.retrieveMeasurements(studyInstanceUid).then(res => {
-        OHIF.log.info('Results in Viewer didUpdate', res);
         let annotations = res.annotations;
         if (annotations.length > 0) {
           annotations.forEach(annotation => {
-            OHIF.log.info('annotation', annotation);
             this.measurementApi.addMeasurement(annotation.toolType, annotation);
           });
         } else {
@@ -320,8 +318,11 @@ class Viewer extends Component {
                 activeIndex={this.props.activeViewportIndex}
               />
             ) : (
-                <ConnectedStudyBrowser studies={this.state.thumbnails} />
-              )}
+              <ConnectedStudyBrowser
+                studies={this.state.thumbnails}
+                studyMetadata={this.props.studies}
+              />
+            )}
           </SidePanel>
 
           {/* MAIN */}
