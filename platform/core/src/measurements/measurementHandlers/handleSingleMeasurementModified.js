@@ -1,8 +1,9 @@
 import cornerstone from 'cornerstone-core';
 import { MeasurementApi } from '../classes';
 import log from '../../log';
+import OHIF from '@ohif/core';
 
-export default function({ eventData, tool, toolGroupId, toolGroup }) {
+export default function ({ eventData, tool, toolGroupId, toolGroup }) {
   const measurementApi = MeasurementApi.Instance;
   if (!measurementApi) {
     log.warn('Measurement API is not initialized');
@@ -30,5 +31,12 @@ export default function({ eventData, tool, toolGroupId, toolGroup }) {
 
   if (MeasurementApi.isToolIncluded(tool)) {
     // TODO: Notify that viewer suffered changes
+  }
+
+  // Update annotations on the mongo db with the new annotation data
+  if (measurement && measurement.length != 0 && measurement.toolType === "ArrowAnnotate") {
+    measurementApi.updateAnnotationOnDb(measurement).then(res => {
+      OHIF.log.info(res);
+    });
   }
 }

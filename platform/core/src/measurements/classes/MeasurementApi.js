@@ -6,6 +6,10 @@ import getImageIdForImagePath from '../lib/getImageIdForImagePath';
 import guid from '../../utils/guid';
 import studyMetadataManager from '../../utils/studyMetadataManager';
 import { measurementApiDefaultConfig } from './../configuration.js';
+import OHIF from '@ohif/core';
+import axios from 'axios';
+
+const rootURL = 'http://localhost:3001';
 
 const configuration = {
   ...measurementApiDefaultConfig,
@@ -201,39 +205,25 @@ export default class MeasurementApi {
     this.options.onMeasurementsUpdated(Object.assign({}, this.tools));
   }
 
-  retrieveMeasurements(patientId, timepointIds) {
-    const retrievalFn = configuration.dataExchange.retrieve;
-    if (typeof retrievalFn !== 'function') {
-      log.error('Measurement retrieval function has not been configured.');
-      return;
+  async updateAnnotationOnDb(update) {
+    const url = rootURL + '/annotations/update/' + update._id;
+    try {
+      const result = await axios.put(url, update);
+      return result.data;
+    } catch (err) {
+      OHIF.log.info(err);
     }
+  }
 
-    return new Promise((resolve, reject) => {
-      retrievalFn(patientId, timepointIds).then(measurementData => {
-        if (measurementData) {
-          log.info('Measurement data retrieval');
-          log.info(measurementData);
-
-          Object.keys(measurementData).forEach(measurementTypeId => {
-            const measurements = measurementData[measurementTypeId];
-
-            measurements.forEach(measurement => {
-              const { toolType } = measurement;
-
-              this.addMeasurement(toolType, measurement);
-            });
-          });
-        }
-
-        resolve();
-
-        // Synchronize the new tool data
-        this.syncMeasurementsAndToolData();
-
-        // Let others know that the measurements are updated
-        this.onMeasurementsUpdated();
-      }, reject);
-    });
+  async retrieveMeasurements(studyInstanceUid) {
+    const url = rootURL + '/annotations/retrieve/' + studyInstanceUid;
+    try {
+      let result = await axios.get(url);
+      return result.data;
+    }
+    catch (err) {
+      OHIF.log.info(err);
+    }
   }
 
   storeMeasurements(timepointId) {
@@ -643,158 +633,182 @@ export default class MeasurementApi {
     const groupCollection = this.toolGroups[toolGroup];
     const collection = this.tools[toolType];
 
-    // Get the related measurement by the measurement number and use its location if defined
-    const relatedMeasurement = collection.find(
-      t =>
-        t.lesionNamingNumber === measurement.lesionNamingNumber &&
-        t.toolType === measurement.toolType
-    );
+    // prevent multiple queries to add the same measurement multiple times
+    const measurementExists = (collection.find(existingMeasurement => existingMeasurement._id === measurement._id) === undefined) ? false : true;
 
-    // Use the related measurement location if found and defined
-    if (relatedMeasurement && relatedMeasurement.location) {
-      measurement.location = relatedMeasurement.location;
-    }
-
-    // Use the related measurement description if found and defined
-    if (relatedMeasurement && relatedMeasurement.description) {
-      measurement.description = relatedMeasurement.description;
-    }
-
-    measurement._id = guid();
-
-    // Get the timepoint
-    let timepoint;
-    if (measurement.studyInstanceUid) {
-      timepoint = this.timepointApi.study(measurement.studyInstanceUid)[0];
-    } else {
-      const { timepointId } = measurement;
-      timepoint = this.timepointApi.timepoints.find(
-        t => t.timepointId === timepointId
+    if (!measurementExists) {
+      // Get the related measurement by the measurement number and use its location if defined
+      const relatedMeasurement = collection.find(
+        t =>
+          t.lesionNamingNumber === measurement.lesionNamingNumber &&
+          t.toolType === measurement.toolType
       );
+
+      // Use the related measurement location if found and defined
+      if (relatedMeasurement && relatedMeasurement.location) {
+        measurement.location = relatedMeasurement.location;
+      }
+
+      // Use the related measurement description if found and defined
+      if (relatedMeasurement && relatedMeasurement.description) {
+        measurement.description = relatedMeasurement.description;
+      }
+
+      if (!measurement._id) {
+        measurement._id = guid();
+      }
+
+      // Get the timepoint
+      let timepoint;
+      if (measurement.studyInstanceUid) {
+        timepoint = this.timepointApi.study(measurement.studyInstanceUid)[0];
+      } else {
+        const { timepointId } = measurement;
+        timepoint = this.timepointApi.timepoints.find(
+          t => t.timepointId === timepointId
+        );
+      }
+
+      // Preventing errors thrown when non-associated (standalone) study is opened...
+      // @TODO: Make sure this logic is correct.
+      if (!timepoint) return;
+
+      // Empty Item is the lesion just added in cornerstoneTools, but does not have measurement data yet
+      const emptyItem = groupCollection.find(
+        groupTool =>
+          !groupTool.toolId && groupTool.timepointId === timepoint.timepointId
+      );
+
+      // Set the timepointId attribute to measurement to make it easier to filter measurements by timepoint
+      measurement.timepointId = timepoint.timepointId;
+
+      // Check if the measurement data is just added by a cornerstone tool and is still empty
+      if (emptyItem) {
+        // Set relevant initial data and measurement number to the measurement
+        measurement.lesionNamingNumber = emptyItem.lesionNamingNumber;
+        measurement.measurementNumber = emptyItem.measurementNumber;
+
+        groupCollection
+          .filter(
+            groupTool =>
+              groupTool.timepointId === timepoint.timepointId &&
+              groupTool.lesionNamingNumber === measurement.lesionNamingNumber
+          )
+          .forEach(groupTool => {
+            groupTool.toolId = tool.id;
+            groupTool.toolItemId = measurement._id;
+            groupTool.createdAt = measurement.createdAt;
+            groupTool.measurementNumber = measurement.measurementNumber;
+          });
+      } else {
+        // Handle measurements not added by cornerstone tools and update its number
+        const measurementsInTimepoint = groupCollection.filter(
+          groupTool => groupTool.timepointId === timepoint.timepointId
+        );
+        measurement.lesionNamingNumber = this.calculateLesionNamingNumber(
+          measurementsInTimepoint
+        );
+        measurement.measurementNumber =
+          measurement.measurementNumber ||
+          this.calculateMeasurementNumber(measurement) + 1;
+      }
+
+      // Define an update object to reflect the changes in the collection
+      const updateObject = {
+        timepointId: timepoint.timepointId,
+        lesionNamingNumber: measurement.lesionNamingNumber,
+        measurementNumber: measurement.measurementNumber,
+      };
+
+      // Find the matched measurement from other timepoints
+      const found = this.getPreviousMeasurement(measurement);
+
+      // Check if a previous related meausurement was found on other timepoints
+      if (found) {
+        // Use the same number as the previous measurement
+        measurement.lesionNamingNumber = found.lesionNamingNumber;
+        measurement.measurementNumber = found.measurementNumber;
+
+        // TODO: Remove TrialPatientLocationUid from here and override it somehow
+        // by dependant applications
+
+        // Change the update object to set the same number, additionalData,
+        // location, label and description to the current measurement
+        updateObject.lesionNamingNumber = found.lesionNamingNumber;
+        updateObject.measurementNumber = found.measurementNumber;
+        updateObject.additionalData = measurement.additionalData || {};
+        updateObject.additionalData.TrialPatientLocationUid =
+          found.additionalData && found.additionalData.TrialPatientLocationUid;
+        updateObject.location = found.location;
+        updateObject.label = found.label;
+        updateObject.description = found.description;
+        updateObject.isSplitLesion = found.isSplitLesion;
+        updateObject.isNodal = found.isNodal;
+
+        const description = getDescription(found, measurement);
+        if (description) {
+          updateObject.description = description;
+        }
+      } else if (this.hasDuplicateMeasurementNumber(measurement)) {
+        // Update measurementNumber for the measurements with masurementNumber greater or equal than
+        //  measurementNumber of the added measurement (except the added one)
+        //   only if there is another measurement with the same measurementNumber
+        this.updateMeasurementNumberForAllMeasurements(measurement, 1);
+      }
+
+      let addedMeasurement;
+
+      // Upsert the measurement in collection
+      const toolIndex = collection.findIndex(
+        tool => tool._id === measurement._id
+      );
+      if (toolIndex > -1) {
+        addedMeasurement = Object.assign({}, collection[toolIndex], updateObject);
+        collection[toolIndex] = addedMeasurement;
+      } else {
+        addedMeasurement = Object.assign({}, measurement, updateObject);
+        collection.push(addedMeasurement);
+      }
+
+      if (!emptyItem) {
+        // Reflect the entry in the tool group collection
+        groupCollection.push({
+          toolId: toolType,
+          toolItemId: addedMeasurement._id,
+          timepointId: timepoint.timepointId,
+          studyInstanceUid: addedMeasurement.studyInstanceUid,
+          createdAt: addedMeasurement.createdAt,
+          lesionNamingNumber: addedMeasurement.lesionNamingNumber,
+          measurementNumber: addedMeasurement.measurementNumber,
+        });
+      }
+
+      this.onMeasurementsUpdated();
+      return addedMeasurement;
+    } else {
+      OHIF.log.info('Measurement already added');
+      return measurement;
     }
+  }
 
-    // Preventing errors thrown when non-associated (standalone) study is opened...
-    // @TODO: Make sure this logic is correct.
-    if (!timepoint) return;
-
-    // Empty Item is the lesion just added in cornerstoneTools, but does not have measurement data yet
-    const emptyItem = groupCollection.find(
-      groupTool =>
-        !groupTool.toolId && groupTool.timepointId === timepoint.timepointId
-    );
-
-    // Set the timepointId attribute to measurement to make it easier to filter measurements by timepoint
-    measurement.timepointId = timepoint.timepointId;
-
-    // Check if the measurement data is just added by a cornerstone tool and is still empty
-    if (emptyItem) {
-      // Set relevant initial data and measurement number to the measurement
-      measurement.lesionNamingNumber = emptyItem.lesionNamingNumber;
-      measurement.measurementNumber = emptyItem.measurementNumber;
-
-      groupCollection
-        .filter(
-          groupTool =>
-            groupTool.timepointId === timepoint.timepointId &&
-            groupTool.lesionNamingNumber === measurement.lesionNamingNumber
-        )
-        .forEach(groupTool => {
-          groupTool.toolId = tool.id;
-          groupTool.toolItemId = measurement._id;
-          groupTool.createdAt = measurement.createdAt;
-          groupTool.measurementNumber = measurement.measurementNumber;
+  async addAnnotationToDb(annotation) {
+    if (annotation.toolType == "ArrowAnnotate") {
+      if (!annotation._id) {
+        annotation._id = guid();
+      }
+      const url = rootURL + '/annotations/add';
+      return axios.post(url, annotation)
+        .then(result => {
+          return result.data;
+        })
+        .catch(err => {
+          OHIF.log.info(err);
         });
     } else {
-      // Handle measurements not added by cornerstone tools and update its number
-      const measurementsInTimepoint = groupCollection.filter(
-        groupTool => groupTool.timepointId === timepoint.timepointId
-      );
-      measurement.lesionNamingNumber = this.calculateLesionNamingNumber(
-        measurementsInTimepoint
-      );
-      measurement.measurementNumber =
-        measurement.measurementNumber ||
-        this.calculateMeasurementNumber(measurement) + 1;
+      return Promise.resolve();
     }
-
-    // Define an update object to reflect the changes in the collection
-    const updateObject = {
-      timepointId: timepoint.timepointId,
-      lesionNamingNumber: measurement.lesionNamingNumber,
-      measurementNumber: measurement.measurementNumber,
-    };
-
-    // Find the matched measurement from other timepoints
-    const found = this.getPreviousMeasurement(measurement);
-
-    // Check if a previous related meausurement was found on other timepoints
-    if (found) {
-      // Use the same number as the previous measurement
-      measurement.lesionNamingNumber = found.lesionNamingNumber;
-      measurement.measurementNumber = found.measurementNumber;
-
-      // TODO: Remove TrialPatientLocationUid from here and override it somehow
-      // by dependant applications
-
-      // Change the update object to set the same number, additionalData,
-      // location, label and description to the current measurement
-      updateObject.lesionNamingNumber = found.lesionNamingNumber;
-      updateObject.measurementNumber = found.measurementNumber;
-      updateObject.additionalData = measurement.additionalData || {};
-      updateObject.additionalData.TrialPatientLocationUid =
-        found.additionalData && found.additionalData.TrialPatientLocationUid;
-      updateObject.location = found.location;
-      updateObject.label = found.label;
-      updateObject.description = found.description;
-      updateObject.isSplitLesion = found.isSplitLesion;
-      updateObject.isNodal = found.isNodal;
-
-      const description = getDescription(found, measurement);
-      if (description) {
-        updateObject.description = description;
-      }
-    } else if (this.hasDuplicateMeasurementNumber(measurement)) {
-      // Update measurementNumber for the measurements with masurementNumber greater or equal than
-      //  measurementNumber of the added measurement (except the added one)
-      //   only if there is another measurement with the same measurementNumber
-      this.updateMeasurementNumberForAllMeasurements(measurement, 1);
-    }
-
-    let addedMeasurement;
-
-    // Upsert the measurement in collection
-    const toolIndex = collection.findIndex(
-      tool => tool._id === measurement._id
-    );
-    if (toolIndex > -1) {
-      addedMeasurement = Object.assign({}, collection[toolIndex], updateObject);
-      collection[toolIndex] = addedMeasurement;
-    } else {
-      addedMeasurement = Object.assign({}, measurement, updateObject);
-      collection.push(addedMeasurement);
-    }
-
-    if (!emptyItem) {
-      // Reflect the entry in the tool group collection
-      groupCollection.push({
-        toolId: toolType,
-        toolItemId: addedMeasurement._id,
-        timepointId: timepoint.timepointId,
-        studyInstanceUid: addedMeasurement.studyInstanceUid,
-        createdAt: addedMeasurement.createdAt,
-        lesionNamingNumber: addedMeasurement.lesionNamingNumber,
-        measurementNumber: addedMeasurement.measurementNumber,
-      });
-    }
-
-    // Let others know that the measurements are updated
-    this.onMeasurementsUpdated();
-
-    // TODO: Enable reactivity
-    // this.timepointChanged.set(timepoint.timepointId);
-
-    return addedMeasurement;
   }
+
 
   updateMeasurement(toolType, measurement) {
     const collection = this.tools[toolType];

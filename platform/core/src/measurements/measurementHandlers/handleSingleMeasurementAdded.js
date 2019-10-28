@@ -4,6 +4,7 @@ import log from '../../log';
 import user from '../../user';
 import getImageAttributes from '../lib/getImageAttributes';
 import getLabel from '../lib/getLabel';
+import OHIF from '@ohif/core';
 
 export default function handleSingleMeasurementAdded({ eventData, tool }) {
   const measurementApi = MeasurementApi.Instance;
@@ -36,6 +37,15 @@ export default function handleSingleMeasurementAdded({ eventData, tool }) {
   const measurementLabel = getLabel(measurementData);
   if (measurementLabel) {
     measurementData.labels = [measurementLabel];
+  }
+
+  // Save annotation measurements to the mongo db 
+  if(toolType === "ArrowAnnotate"){
+    addedMeasurement.text = measurementData.text;
+    measurementApi.addAnnotationToDb(addedMeasurement)
+    .then( res => {
+      OHIF.log.info(res.status);
+    });
   }
 
   // TODO: This is very hacky, but will work for now

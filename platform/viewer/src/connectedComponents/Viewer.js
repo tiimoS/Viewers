@@ -70,7 +70,7 @@ class Viewer extends Component {
     super(props);
     OHIF.measurements.MeasurementApi.setConfiguration({
       dataExchange: {
-        retrieve: this.retrieveMeasurements,
+        retrieve: OHIF.measurements.MeasurementApi.retrieveMeasurements,
         store: this.storeMeasurements,
       },
     });
@@ -92,23 +92,22 @@ class Viewer extends Component {
     selectedRightSidePanel: '',
     selectedLeftSidePanel: 'studies', // TODO: Don't hardcode this
     thumbnails: [],
+    measurementsRetrieved: false,
   };
 
-  retrieveMeasurements = (patientId, timepointIds) => {
-    OHIF.log.info('retrieveMeasurements');
-    // TODO: Retrieve the measurements from the latest available SR
+  retrieveMeasurements = () => {
+    OHIF.log.info('Viewer retrieve');
     return Promise.resolve();
+    // TODO: Retrieve the measurements from the latest available SR
   };
 
   storeMeasurements = (measurementData, timepointIds) => {
     OHIF.log.info('storeMeasurements');
-    // TODO: Store the measurements into a new SR sent to the active server
+    OHIF.log.info('store in Viewer');
     return Promise.resolve();
   };
 
   retrieveTimepoints = filter => {
-    OHIF.log.info('retrieveTimepoints');
-
     // Get the earliest and latest study date
     let earliestDate = new Date().toISOString();
     let latestDate = new Date().toISOString();
@@ -190,9 +189,26 @@ class Viewer extends Component {
 
     if (studies) {
       const patientId = studies[0] && studies[0].patientId;
+      const studyInstanceUid = studies[0].studyInstanceUid;
 
       timepointApi.retrieveTimepoints({ patientId });
-      measurementApi.retrieveMeasurements(patientId, [currentTimepointId]);
+      OHIF.log.info('viewer studyInstnaceUid', studyInstanceUid);
+      // TODO check if we can remove this
+
+
+      this.measurementApi.retrieveMeasurements(studyInstanceUid).then(res => {
+        OHIF.log.info('Results in Viewer didUpdate', res);
+        let annotations = res.annotations;
+        if (annotations.length > 0) {
+          annotations.forEach(annotation => {
+            OHIF.log.info('annotation', annotation);
+            this.measurementApi.addMeasurement(annotation.toolType, annotation);
+          });
+        } else {
+          OHIF.log.info('no annotations', annotations);
+        }
+      });
+
 
       this.setState({
         thumbnails: _mapStudiesToThumbnails(studies),
@@ -204,10 +220,19 @@ class Viewer extends Component {
     if (this.props.studies !== prevProps.studies) {
       const { studies } = this.props;
       const patientId = studies[0] && studies[0].patientId;
-      const currentTimepointId = this.currentTimepointId;
+      const studyInstanceUid = studies[0].studyInstanceUid;
 
       this.timepointApi.retrieveTimepoints({ patientId });
-      this.measurementApi.retrieveMeasurements(patientId, [currentTimepointId]);
+
+      // check if this could be done only once instead of once per series. 
+      this.measurementApi.retrieveMeasurements(studyInstanceUid).then(res => {
+        const annotations = res.annotations;
+        if (annotations.length > 0) {
+          annotations.forEach(annotation => {
+            this.measurementApi.addMeasurement(annotation.toolType, annotation);
+          });
+        }
+      });
 
       this.setState({
         thumbnails: _mapStudiesToThumbnails(studies),
@@ -295,8 +320,8 @@ class Viewer extends Component {
                 activeIndex={this.props.activeViewportIndex}
               />
             ) : (
-              <ConnectedStudyBrowser studies={this.state.thumbnails} />
-            )}
+                <ConnectedStudyBrowser studies={this.state.thumbnails} />
+              )}
           </SidePanel>
 
           {/* MAIN */}
@@ -333,7 +358,7 @@ export default Viewer;
  * @param {Study[]} studies
  * @param {DisplaySet[]} studies[].displaySets
  */
-const _mapStudiesToThumbnails = function(studies) {
+const _mapStudiesToThumbnails = function (studies) {
   return studies.map(study => {
     const { studyInstanceUid } = study;
 
