@@ -34,6 +34,10 @@ export default function handleSingleMeasurementRemoved({
     timepointId,
   });
 
+  if(toolType === "ArrowAnnotate"){
+    measurementApi.deleteAnnotationOnDb(measurement);
+  }
+
   // TODO: This is very hacky, but will work for now
   cornerstone.getEnabledElements().forEach(enabledElement => {
     cornerstone.updateImage(enabledElement.element);

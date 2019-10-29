@@ -10,6 +10,7 @@ import OHIF from '@ohif/core';
 import axios from 'axios';
 
 const rootURL = 'http://localhost:3001';
+//const rootUL = ''
 
 const configuration = {
   ...measurementApiDefaultConfig,
@@ -215,22 +216,10 @@ export default class MeasurementApi {
     }
   }
 
-  retrieveMeasurements(studyInstanceUid) {
+  async retrieveMeasurements(studyInstanceUid) {
     const url = rootURL + '/annotations/retrieve/' + studyInstanceUid;
     return axios.get(url).then(res => res.data);
   }
-
-  /*
-  async retrieveMeasurements(studyInstanceUid) {
-    const url = rootURL + '/annotations/retrieve/' + studyInstanceUid;
-    try {
-      let result = await axios.get(url);
-      return result.data;
-    }
-    catch (err) {
-      OHIF.log.info(err);
-    }
-  }*/
 
   storeMeasurements(timepointId) {
     const storeFn = configuration.dataExchange.store;
@@ -1022,4 +1011,22 @@ export default class MeasurementApi {
         });
     });
   }
+
+  async deleteAnnotationOnDb(annotation) {
+    OHIF.log.info('deleting annotation from db', annotation);
+    if (annotation.toolType === 'ArrowAnnotate') {
+      const url = rootURL + '/annotations/delete/' + annotation._id;
+      OHIF.log.info('url', url); 
+      return axios.delete(url, annotation)
+        .then(result => {
+          return result.data;
+        })
+        .catch(err => {
+          OHIF.log.info(err);
+        });
+    } else {
+      return Promise.resolve();
+    }
+  }
+
 }

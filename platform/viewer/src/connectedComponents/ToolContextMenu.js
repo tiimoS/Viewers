@@ -15,6 +15,7 @@ const toolTypes = [
   'EllipticalRoi',
   'CircleRoi',
   'RectangleRoi',
+  'ArrowAnnotate',
 ];
 
 let defaultDropdownItems = [
