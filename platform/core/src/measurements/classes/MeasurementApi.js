@@ -215,6 +215,12 @@ export default class MeasurementApi {
     }
   }
 
+  retrieveMeasurements(studyInstanceUid) {
+    const url = rootURL + '/annotations/retrieve/' + studyInstanceUid;
+    return axios.get(url).then(res => res.data);
+  }
+
+  /*
   async retrieveMeasurements(studyInstanceUid) {
     const url = rootURL + '/annotations/retrieve/' + studyInstanceUid;
     try {
@@ -224,7 +230,7 @@ export default class MeasurementApi {
     catch (err) {
       OHIF.log.info(err);
     }
-  }
+  }*/
 
   storeMeasurements(timepointId) {
     const storeFn = configuration.dataExchange.store;
@@ -783,6 +789,10 @@ export default class MeasurementApi {
         });
       }
 
+      // Synchronize the new tool data
+      this.syncMeasurementsAndToolData();
+
+      // Let others know that the measurements are updated
       this.onMeasurementsUpdated();
       return addedMeasurement;
     } else {

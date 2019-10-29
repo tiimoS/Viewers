@@ -229,6 +229,12 @@ class Viewer extends Component {
           annotations.forEach(annotation => {
             this.measurementApi.addMeasurement(annotation.toolType, annotation);
           });
+
+          // Synchronize the new tool data
+          this.measurementApi.syncMeasurementsAndToolData();
+
+          // Let others know that the measurements are updated
+          this.measurementApi.onMeasurementsUpdated();
         }
       });
 
