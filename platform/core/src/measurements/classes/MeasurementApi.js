@@ -791,12 +791,13 @@ export default class MeasurementApi {
   }
 
   async addAnnotationToDb(annotation) {
-    if (annotation.toolType == "ArrowAnnotate") {
+    if (annotation.toolType == 'ArrowAnnotate') {
       if (!annotation._id) {
         annotation._id = guid();
       }
       const url = rootURL + '/annotations/add';
-      return axios.post(url, annotation)
+      return axios
+        .post(url, annotation)
         .then(result => {
           return result.data;
         })
