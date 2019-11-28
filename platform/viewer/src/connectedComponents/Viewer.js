@@ -187,14 +187,14 @@ class Viewer extends Component {
     this.timepointApi = timepointApi;
     this.measurementApi = measurementApi;
 
-    if (studies) {
+    if (studies && studies[0]) {
+      OHIF.log.info('studies', studies);
       const patientId = studies[0] && studies[0].patientId;
       const studyInstanceUid = studies[0].studyInstanceUid;
 
       timepointApi.retrieveTimepoints({ patientId });
       OHIF.log.info('viewer studyInstnaceUid', studyInstanceUid);
       // TODO check if we can remove this
-
 
       this.measurementApi.retrieveMeasurements(studyInstanceUid).then(res => {
         let annotations = res.annotations;
@@ -206,7 +206,6 @@ class Viewer extends Component {
           OHIF.log.info('no annotations', annotations);
         }
       });
-
 
       this.setState({
         thumbnails: _mapStudiesToThumbnails(studies),
@@ -222,7 +221,7 @@ class Viewer extends Component {
 
       this.timepointApi.retrieveTimepoints({ patientId });
 
-      // check if this could be done only once instead of once per series. 
+      // check if this could be done only once instead of once per series.
       this.measurementApi.retrieveMeasurements(studyInstanceUid).then(res => {
         const annotations = res.annotations;
         if (annotations.length > 0) {
@@ -365,7 +364,7 @@ export default Viewer;
  * @param {Study[]} studies
  * @param {DisplaySet[]} studies[].displaySets
  */
-const _mapStudiesToThumbnails = function (studies) {
+const _mapStudiesToThumbnails = function(studies) {
   return studies.map(study => {
     const { studyInstanceUid } = study;
 
