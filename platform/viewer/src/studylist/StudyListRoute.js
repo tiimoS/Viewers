@@ -332,28 +332,42 @@ async function getStudyList(
     patientNameOrId,
     accessionOrModalityOrDescription,
   } = filters;
+  OHIF.log.info('filters', filters);
   const sortFieldName = sort.fieldName || 'patientName';
   const sortDirection = sort.direction || 'desc';
-  const studyDateFrom =
-    filters.studyDateFrom ||
-    moment()
-      .subtract(25000, 'days')
-      .toDate();
+  const studyDateFrom = filters.studyDateFrom;
   const studyDateTo = filters.studyDateTo || new Date();
+  OHIF.log.info('from', studyDateFrom);
+  OHIF.log.info('to', studyDateTo);
 
-  const mappedFilters = {
-    patientId: filters.patientId,
-    patientName: filters.patientName,
-    accessionNumber: filters.accessionNumber,
-    studyDescription: filters.studyDescription,
-    modalitiesInStudy: filters.modalities,
-    // NEVER CHANGE
-    studyDateFrom,
-    studyDateTo,
-    limit: rowsPerPage,
-    offset: pageNumber * rowsPerPage,
-    fuzzymatching: server.supportsFuzzyMatching === true,
-  };
+  let mappedFilters;
+  if (studyDateFrom == undefined) {
+    mappedFilters = {
+      patientId: filters.patientId,
+      patientName: filters.patientName,
+      accessionNumber: filters.accessionNumber,
+      studyDescription: filters.studyDescription,
+      modalitiesInStudy: filters.modalities,
+      // NEVER CHANGE
+      limit: rowsPerPage,
+      offset: pageNumber * rowsPerPage,
+      fuzzymatching: server.supportsFuzzyMatching === true,
+    };
+  } else {
+    mappedFilters = {
+      patientId: filters.patientId,
+      patientName: filters.patientName,
+      accessionNumber: filters.accessionNumber,
+      studyDescription: filters.studyDescription,
+      modalitiesInStudy: filters.modalities,
+      // NEVER CHANGE
+      studyDateFrom,
+      studyDateTo,
+      limit: rowsPerPage,
+      offset: pageNumber * rowsPerPage,
+      fuzzymatching: server.supportsFuzzyMatching === true,
+    };
+  }
 
   const studies = await _fetchStudies(server, mappedFilters, displaySize, {
     allFields,
@@ -368,7 +382,7 @@ async function getStudyList(
 
     return {
       accessionNumber: study.accessionNumber, // "1"
-      modalities: study.modalities, // "SEG\\MR"  ​​
+      modalities: study.modalities, // "SEG\\MR"
       // numberOfStudyRelatedInstances: "3"
       // numberOfStudyRelatedSeries: "3"
       // patientBirthdate: undefined
