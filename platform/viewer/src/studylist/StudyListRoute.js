@@ -332,13 +332,10 @@ async function getStudyList(
     patientNameOrId,
     accessionOrModalityOrDescription,
   } = filters;
-  OHIF.log.info('filters', filters);
   const sortFieldName = sort.fieldName || 'patientName';
   const sortDirection = sort.direction || 'desc';
   const studyDateFrom = filters.studyDateFrom;
   const studyDateTo = filters.studyDateTo || new Date();
-  OHIF.log.info('from', studyDateFrom);
-  OHIF.log.info('to', studyDateTo);
 
   let mappedFilters;
   if (studyDateFrom == undefined) {
