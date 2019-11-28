@@ -34,7 +34,7 @@ export default function handleSingleMeasurementRemoved({
     timepointId,
   });
 
-  if(toolType === "ArrowAnnotate"){
+  if (toolType === 'ArrowAnnotate') {
     measurementApi.deleteAnnotationOnDb(measurement);
   }
 

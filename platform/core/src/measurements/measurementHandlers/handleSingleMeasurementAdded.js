@@ -39,11 +39,10 @@ export default function handleSingleMeasurementAdded({ eventData, tool }) {
     measurementData.labels = [measurementLabel];
   }
 
-  // Save annotation measurements to the mongo db 
-  if(toolType === "ArrowAnnotate"){
+  // Save annotation measurements to the mongo db
+  if (toolType === 'ArrowAnnotate') {
     addedMeasurement.text = measurementData.text;
-    measurementApi.addAnnotationToDb(addedMeasurement)
-    .then( res => {
+    measurementApi.addAnnotationToDb(addedMeasurement).then(res => {
       OHIF.log.info(res.status);
     });
   }
