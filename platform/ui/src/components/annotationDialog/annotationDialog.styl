@@ -1,0 +1,49 @@
+@import './../../design/styles/common/global.styl'
+@import './../../design/styles/common/form.styl'
+
+.annotationDialog
+  theme('border', '1px solid $uiBorderColor', 0.95)
+  theme('background', '$uiGrayDarkest', 0.95)
+  theme('color', '$textSecondaryColor')
+  z-index: 1000
+  position: absolute
+  top: 0
+  bottom: 0
+  left: 0
+  right: 0
+  margin: auto
+  overflow: hidden
+  width: 300px
+  height: 400px
+  border-radius: 8px
+
+  h5, label
+    font-weight: 400
+
+  .annotationTextInputOptions
+    overflow-y: auto
+    height: 300px
+
+    option
+      color: #444
+
+  .annotationDialogConfirm
+    float: right
+
+  #addHiddenTextInput, #editHiddenTextInput
+    height: 0
+    visibility: hidden
+
+  .buttons-row
+    position: absolute
+    bottom: 15px
+    right: 15px
+
+  .jstree-anchor:hover, .jstree-anchor:focus
+    text-decoration: none !important
+    color: #337ab7
+
+  .jstree-leaf[aria-selected="true"]
+
+    .jstree-anchor
+      color: white !important
