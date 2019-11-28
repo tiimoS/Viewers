@@ -629,7 +629,12 @@ export default class MeasurementApi {
     const collection = this.tools[toolType];
 
     // prevent multiple queries to add the same measurement multiple times
-    const measurementExists = (collection.find(existingMeasurement => existingMeasurement._id === measurement._id) === undefined) ? false : true;
+    const measurementExists =
+      collection.find(
+        existingMeasurement => existingMeasurement._id === measurement._id
+      ) === undefined
+        ? false
+        : true;
 
     if (!measurementExists) {
       // Get the related measurement by the measurement number and use its location if defined
@@ -682,6 +687,7 @@ export default class MeasurementApi {
         // Set relevant initial data and measurement number to the measurement
         measurement.lesionNamingNumber = emptyItem.lesionNamingNumber;
         measurement.measurementNumber = emptyItem.measurementNumber;
+        const { tool } = MeasurementApi.getToolConfiguration(toolType);
 
         groupCollection
           .filter(
@@ -758,7 +764,11 @@ export default class MeasurementApi {
         tool => tool._id === measurement._id
       );
       if (toolIndex > -1) {
-        addedMeasurement = Object.assign({}, collection[toolIndex], updateObject);
+        addedMeasurement = Object.assign(
+          {},
+          collection[toolIndex],
+          updateObject
+        );
         collection[toolIndex] = addedMeasurement;
       } else {
         addedMeasurement = Object.assign({}, measurement, updateObject);
@@ -791,6 +801,7 @@ export default class MeasurementApi {
   }
 
   async addAnnotationToDb(annotation) {
+    OHIF.log.info('annotation', annotation);
     if (annotation.toolType == 'ArrowAnnotate') {
       if (!annotation._id) {
         annotation._id = guid();
@@ -808,7 +819,6 @@ export default class MeasurementApi {
       return Promise.resolve();
     }
   }
-
 
   updateMeasurement(toolType, measurement) {
     const collection = this.tools[toolType];
@@ -1017,8 +1027,8 @@ export default class MeasurementApi {
     OHIF.log.info('deleting annotation from db', annotation);
     if (annotation.toolType === 'ArrowAnnotate') {
       const url = rootURL + '/annotations/delete/' + annotation._id;
-      OHIF.log.info('url', url); 
-      return axios.delete(url, annotation)
+      return axios
+        .delete(url, annotation)
         .then(result => {
           return result.data;
         })
@@ -1029,5 +1039,4 @@ export default class MeasurementApi {
       return Promise.resolve();
     }
   }
-
 }
