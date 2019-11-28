@@ -5,6 +5,9 @@ import {
   initCommonElementsAliases,
   initRouteAliases,
   initVTKToolsAliases,
+  initStudyListAliasesOnDesktop,
+  initStudyListAliasesOnTablet,
+  initPreferencesModalAliases,
 } from './aliases.js';
 
 // ***********************************************
@@ -40,9 +43,9 @@ import {
  */
 Cypress.Commands.add('openStudy', patientName => {
   cy.openStudyList();
-  cy.get('#patientName').type(patientName);
+  cy.get('#filter-patientNameOrId').type(patientName);
   cy.wait('@getStudies');
-  cy.get('#studyListData .studylistStudy', { timeout: 5000 })
+  cy.get('[data-cy="study-list-results"]', { timeout: 5000 })
     .contains(patientName)
     .first()
     .click({ force: true });
@@ -56,11 +59,12 @@ Cypress.Commands.add('openStudy', patientName => {
 Cypress.Commands.add('openStudyModality', modality => {
   cy.initRouteAliases();
   cy.visit('/');
-  cy.get('#modalities')
+
+  cy.get('#filter-accessionOrModalityOrDescription')
     .type(modality)
     .wait(2000);
 
-  cy.get('#studyListData')
+  cy.get('[data-cy="study-list-results"]')
     .contains(modality)
     .first()
     .click();
@@ -75,10 +79,35 @@ Cypress.Commands.add('isPageLoaded', (url = '/viewer/') => {
   return cy.location('pathname', { timeout: 60000 }).should('include', url);
 });
 
-Cypress.Commands.add('openStudyList', patientName => {
+Cypress.Commands.add('openStudyList', () => {
   cy.initRouteAliases();
   cy.visit('/');
   cy.wait('@getStudies');
+});
+
+Cypress.Commands.add('waitStudyList', () => {
+  cy.get('@searchResult').should($list => {
+    expect($list).to.not.have.class('no-hover');
+  });
+});
+
+Cypress.Commands.add('waitVTKReformatting', () => {
+  // Wait for start reformatting
+  cy.get('[data-cy="viewprt-grid"]', { timeout: 10000 }).should($grid => {
+    expect($grid).to.contain.text('Reform');
+  });
+
+  // Wait for finish reformatting
+  cy.get('[data-cy="viewprt-grid"]', { timeout: 30000 }).should($grid => {
+    expect($grid).not.to.contain.text('Reform');
+  });
+});
+
+Cypress.Commands.add('waitViewportImageLoading', () => {
+  // Wait for finish loading
+  cy.get('[data-cy="viewprt-grid"]', { timeout: 20000 }).should($grid => {
+    expect($grid).not.to.contain.text('Load');
+  });
 });
 
 /**
@@ -179,10 +208,10 @@ Cypress.Commands.add('waitDicomImage', (timeout = 20000) => {
 
 //Command to reset and clear all the changes made to the viewport
 Cypress.Commands.add('resetViewport', () => {
-  cy.initCornerstoneToolsAliases();
-
   //Click on More button
-  cy.get('@moreBtn').click();
+  cy.get('.expandableToolMenu')
+    .as('moreBtn')
+    .click();
   //Verify if overlay is displayed
   cy.get('body').then(body => {
     if (body.find('.tooltip-toolbar-overlay').length == 0) {
@@ -194,7 +223,9 @@ Cypress.Commands.add('resetViewport', () => {
     .as('clearBtn')
     .click();
   //Click on Reset button
-  cy.get('@resetBtn').click();
+  cy.get('.ToolbarRow > :nth-child(9)')
+    .as('resetBtn')
+    .click();
 });
 
 Cypress.Commands.add('imageZoomIn', () => {
@@ -237,6 +268,16 @@ Cypress.Commands.add('initRouteAliases', () => {
 //Initialize aliases for VTK tools
 Cypress.Commands.add('initVTKToolsAliases', () => {
   initVTKToolsAliases();
+});
+
+//Initialize aliases for Study List page elements
+Cypress.Commands.add('initStudyListAliasesOnDesktop', () => {
+  initStudyListAliasesOnDesktop();
+});
+
+//Initialize aliases for Study List page elements
+Cypress.Commands.add('initStudyListAliasesOnTablet', () => {
+  initStudyListAliasesOnTablet();
 });
 
 //Add measurements in the viewport
@@ -314,28 +355,137 @@ Cypress.Commands.add('isInViewport', element => {
  *
  */
 Cypress.Commands.add('percyCanvasSnapshot', (name, options = {}) => {
-  function convertCanvas(documentClone) {
-    documentClone
-      .querySelectorAll('canvas')
-      .forEach(selector => canvasToImage(selector));
+  cy.document().then(doc => {
+    convertCanvas(doc);
+  });
 
-    return documentClone;
+  // `domTransformation` does not appear to be working
+  // But modifying our immediate DOM does.
+  cy.percySnapshot(name, { ...options }); //, domTransformation: convertCanvas });
+
+  cy.document().then(doc => {
+    unconvertCanvas(doc);
+  });
+});
+
+Cypress.Commands.add('setLayout', (columns = 1, rows = 1) => {
+  cy.get('.btn-group > .toolbar-button').click();
+
+  cy.get('.layoutChooser')
+    .find('tr')
+    .eq(rows - 1)
+    .find('td')
+    .eq(columns - 1)
+    .click();
+
+  cy.wait(1000);
+});
+
+function convertCanvas(documentClone) {
+  documentClone
+    .querySelectorAll('canvas')
+    .forEach(selector => canvasToImage(selector));
+
+  return documentClone;
+}
+
+function unconvertCanvas(documentClone) {
+  // Remove previously generated images
+  documentClone
+    .querySelectorAll('[data-percy-image]')
+    .forEach(selector => selector.remove());
+  // Restore canvas visibility
+  documentClone.querySelectorAll('[data-percy-canvas]').forEach(selector => {
+    selector.removeAttribute('data-percy-canvas');
+    selector.style = '';
+  });
+}
+
+function canvasToImage(selectorOrEl) {
+  let canvas =
+    typeof selectorOrEl === 'object'
+      ? selectorOrEl
+      : document.querySelector(selectorOrEl);
+  let image = document.createElement('img');
+  let canvasImageBase64 = canvas.toDataURL('image/png');
+
+  // Show Image
+  image.src = canvasImageBase64;
+  image.style = 'width: 100%';
+  image.setAttribute('data-percy-image', true);
+  // Hide Canvas
+  canvas.setAttribute('data-percy-canvas', true);
+  canvas.parentElement.appendChild(image);
+  canvas.style = 'display: none';
+}
+
+//Initialize aliases for User Preferences modal
+Cypress.Commands.add('initPreferencesModalAliases', () => {
+  initPreferencesModalAliases();
+});
+
+Cypress.Commands.add('openPreferences', () => {
+  cy.log('Open User Preferences Modal');
+  // Open User Preferences modal
+  cy.get('body').then(body => {
+    if (body.find('.OHIFModal').length === 0) {
+      cy.get('[data-cy="options-menu"]')
+        .scrollIntoView()
+        .click()
+        .then(() => {
+          cy.get('[data-cy="dd-item-menu"]')
+            .last()
+            .click()
+            .wait(200);
+        });
+    }
+  });
+});
+
+Cypress.Commands.add('resetUserHoktkeyPreferences', () => {
+  // Open User Preferences modal
+  cy.openPreferences();
+
+  cy.initPreferencesModalAliases();
+
+  cy.log('Reset to Default Preferences');
+  cy.get('@restoreBtn').click();
+  cy.get('@saveBtn').click();
+});
+
+Cypress.Commands.add(
+  'setNewHotkeyShortcutOnUserPreferencesModal',
+  (function_label, shortcut) => {
+    // Within scopes all `.get` and `.contains` to within the matched elements
+    // dom instead of checking from document
+    cy.get('.HotKeysPreferences')
+      .within(() => {
+        cy.contains(function_label) // label we're looking for
+          .parent()
+          .find('input') // closest input to that label
+          .type(shortcut, { force: true }); // Set new shortcut for that function
+      })
+      .blur();
   }
+);
 
-  function canvasToImage(selectorOrEl) {
-    let canvas =
-      typeof selectorOrEl === 'object'
-        ? selectorOrEl
-        : document.querySelector(selectorOrEl);
-    let image = document.createElement('img');
-    let canvasImageBase64 = canvas.toDataURL();
+Cypress.Commands.add('setLanguage', (language, save = true) => {
+  cy.openPreferences();
 
-    image.src = canvasImageBase64;
-    image.style = 'max-width: 100%';
-    canvas.setAttribute('data-percy-modified', true);
-    canvas.parentElement.appendChild(image);
-    canvas.style = 'display: none';
-  }
+  cy.get('@userPreferencesGeneralTab')
+    .click()
+    .should('have.class', 'active');
 
-  cy.percySnapshot(name, { ...options, domTransformation: convertCanvas });
+  // Language dropdown should be displayed
+  cy.get('#language-select').should('be.visible');
+
+  // Select Language and Save/Cancel
+  cy.get('#language-select')
+    .select(language)
+    .then(() => {
+      const toClick = save ? '@saveBtn' : '@cancelBtn';
+      cy.get(toClick)
+        .scrollIntoView()
+        .click();
+    });
 });

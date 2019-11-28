@@ -3,6 +3,58 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.7.0](https://github.com/OHIF/Viewers/compare/@ohif/extension-cornerstone@1.6.0...@ohif/extension-cornerstone@1.7.0) (2019-11-25)
+
+
+### Features
+
+* Add new annotate tool using new dialog service ([#1211](https://github.com/OHIF/Viewers/issues/1211)) ([8fd3af1](https://github.com/OHIF/Viewers/commit/8fd3af1e137e793f1b482760a22591c64a072047))
+
+
+
+
+
+# [1.6.0](https://github.com/OHIF/Viewers/compare/@ohif/extension-cornerstone@1.5.1...@ohif/extension-cornerstone@1.6.0) (2019-11-19)
+
+
+### Features
+
+* New dialog service ([#1202](https://github.com/OHIF/Viewers/issues/1202)) ([f65639c](https://github.com/OHIF/Viewers/commit/f65639c2b0dab01decd20cab2cef4263cb4fab37))
+
+
+
+
+
+## [1.5.1](https://github.com/OHIF/Viewers/compare/@ohif/extension-cornerstone@1.5.0...@ohif/extension-cornerstone@1.5.1) (2019-11-15)
+
+**Note:** Version bump only for package @ohif/extension-cornerstone
+
+
+
+
+
+# [1.5.0](https://github.com/OHIF/Viewers/compare/@ohif/extension-cornerstone@1.4.1...@ohif/extension-cornerstone@1.5.0) (2019-11-13)
+
+
+### Features
+
+* expose UiNotifications service ([#1172](https://github.com/OHIF/Viewers/issues/1172)) ([5c04e34](https://github.com/OHIF/Viewers/commit/5c04e34c8fb2394ab7acd9eb4f2ab12afeb2f255))
+
+
+
+
+
+## [1.4.1](https://github.com/OHIF/Viewers/compare/@ohif/extension-cornerstone@1.4.0...@ohif/extension-cornerstone@1.4.1) (2019-11-08)
+
+
+### Bug Fixes
+
+* Add a fallback metadata provider which pulls metadata from WADO-… ([#1158](https://github.com/OHIF/Viewers/issues/1158)) ([31b1adf](https://github.com/OHIF/Viewers/commit/31b1adfa5993d6c8e3e9c8b03fa9856f2621b037))
+
+
+
+
+
 # [1.4.0](https://github.com/OHIF/Viewers/compare/@ohif/extension-cornerstone@1.3.1...@ohif/extension-cornerstone@1.4.0) (2019-10-26)
 
 

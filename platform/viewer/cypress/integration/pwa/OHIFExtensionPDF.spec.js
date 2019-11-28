@@ -20,7 +20,9 @@ describe('OHIF PDF Extension', () => {
       .its('length')
       .should('be.eq', 1);
 
-    cy.screenshot();
-    cy.percyCanvasSnapshot('PDF Extension');
+    // This won't work unless we switch to an extension that renders using `canvas`
+    // Currently, we rely on the browser's built-in implementation
+    cy.screenshot('PDF Extension - Should load PDF file');
+    cy.percyCanvasSnapshot('PDF Extension - Should load PDF file');
   });
 });
