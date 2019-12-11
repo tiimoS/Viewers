@@ -48,7 +48,7 @@ export class SelectTree extends Component {
         <div className="treeContent">
           {this.headerItem()}
           <div className="treeOptions">
-            {this.state.currentNode && (
+            {this.state.currentNode && this.state.currentNode.value && (
               <SelectTreeBreadcrumb
                 onSelected={this.onBreadcrumbSelected}
                 label={this.state.currentNode.label}
@@ -82,39 +82,33 @@ export class SelectTree extends Component {
   };
 
   getNeighbours(currentNode) {
-    const rootNodes = cloneDeep(this.props.items);
-    const siblings = this.searchSiblings(rootNodes, currentNode);
+    OHIF.log.info('Getting siblings...');
+    const siblings = this.searchSiblings(currentNode);
     OHIF.log.info('siblings found', siblings);
     return siblings;
   }
 
-  searchSiblings(nodes, currentNode) {
-    // parent has children that are not leafs
-    for (let node of nodes) {
-      if (this.isParent(node, currentNode)) {
-        OHIF.log.info('parent found', node);
-        return node.items;
-      } else {
-        if (node.items) {
-          this.searchSiblings(node.items, currentNode);
-        }
-      }
-    }
-  }
+  searchSiblings = currentNode => {
+    const rootItems = cloneDeep(this.props.items);
+    const allNodes = this.flatArray(rootItems);
+    const parentNode = allNodes.find(
+      node =>
+        node.items && node.items.some(child => child.key === currentNode.key)
+    );
+    OHIF.log.info('parentNode', parentNode);
+    return parentNode.items;
+  };
 
-  isParent(node, currentNode) {
-    if (node.items) {
-      const children = node.items;
-      OHIF.log.info('Checking children', children);
-      for (var i = 0; i < children.length; i++) {
-        if (children[i].key === currentNode.key) {
-          OHIF.log.info('match found');
-          return true;
-        }
+  flatArray = obj => {
+    const array = Array.isArray(obj) ? obj : [obj];
+    return array.reduce((acc, value) => {
+      acc.push(value);
+      if (value.items) {
+        acc = acc.concat(this.flatArray(value.items));
       }
-    }
-    return false;
-  }
+      return acc;
+    }, []);
+  };
 
   filterItems() {
     const filteredItems = [];
@@ -141,21 +135,16 @@ export class SelectTree extends Component {
 
   getTreeItems() {
     const storageKey = 'SelectTree';
-    let treeItems = null;
+    let treeItems = cloneDeep(this.props.items);
 
     if (this.state.searchTerm) {
       treeItems = this.filterItems();
     } else if (this.state.currentNode) {
-      if (this.state.currentNode.items) {
+      if (this.state.currentNode.items) { // node with children
         treeItems = cloneDeep(this.state.currentNode.items);
-        OHIF.log.info('Got kids', treeItems);
-      } else {
+      } else { // leaf node
         treeItems = this.getNeighbours(this.state.currentNode);
-        OHIF.log.info('Got Siblings:', treeItems);
       }
-    } else {
-      OHIF.log.info('got nothing, reset selection');
-      treeItems = cloneDeep(this.props.items);
     }
 
     return treeItems.map((item, index) => {
@@ -217,17 +206,15 @@ export class SelectTree extends Component {
     OHIF.log.info('root onSelected', item);
     OHIF.log.info('state', this.state);
     if (this.isLeafSelected(item)) {
-      OHIF.log.info('leaf selected', item);
       this.setState({
         searchTerm: null,
         currentNode: item,
         value: item.value,
       });
-      OHIF.log.info('after leaf selected', this.state);
     } else {
-      OHIF.log.info('parent selected', this.state);
       this.setState({
         currentNode: item,
+        value: item.value,
       });
     }
     return this.props.onSelected(event, item);
