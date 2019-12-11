@@ -1,8 +1,10 @@
 import React, { Component, useState } from 'react';
 import PropTypes from 'prop-types';
 import { TextInput } from '@ohif/ui';
+import { OHIF } from '@ohif/core';
 
 import './SimpleDialog.styl';
+import { AnnotationDialog } from '../annotationDialog/AnnotationDialog';
 
 class SimpleDialog extends Component {
   static propTypes = {
@@ -32,17 +34,10 @@ class SimpleDialog extends Component {
     return (
       <div className="InputDialog">
         <SimpleDialog
-          headerTitle={title}
+          headerTitle="Select a point to annotate"
           onClose={onClose}
           onConfirm={onSubmitHandler}
-        >
-          <TextInput
-            type="text"
-            value={value}
-            onChange={event => setValue(event.target.value)}
-            label={label}
-          />
-        </SimpleDialog>
+        ></SimpleDialog>
       </div>
     );
   };
@@ -63,7 +58,9 @@ class SimpleDialog extends Component {
                 </span>
                 <h4 className="title">{this.props.headerTitle}</h4>
               </div>
-              <div className="content">{this.props.children}</div>
+              <div className="content">
+                <AnnotationDialog />
+              </div>
               <div className="footer">
                 <button className="btn btn-default" onClick={this.onClose}>
                   Cancel

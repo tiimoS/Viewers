@@ -7,6 +7,7 @@ import InputRadio from './InputRadio.js';
 import PropTypes from 'prop-types';
 import SelectTreeBreadcrumb from './SelectTreeBreadcrumb.js';
 import cloneDeep from 'lodash.clonedeep';
+import { OHIF } from '@ohif/core';
 
 export class SelectTree extends Component {
   static propTypes = {
@@ -64,6 +65,7 @@ export class SelectTree extends Component {
   }
 
   componentDidUpdate = () => {
+    OHIF.log.info('update!');
     if (this.props.onComponentChange) {
       this.props.onComponentChange();
     }
@@ -78,6 +80,41 @@ export class SelectTree extends Component {
     }
     return labelClass;
   };
+
+  getNeighbours(currentNode) {
+    const rootNodes = cloneDeep(this.props.items);
+    const siblings = this.searchSiblings(rootNodes, currentNode);
+    OHIF.log.info('siblings found', siblings);
+    return siblings;
+  }
+
+  searchSiblings(nodes, currentNode) {
+    // parent has children that are not leafs
+    for (let node of nodes) {
+      if (this.isParent(node, currentNode)) {
+        OHIF.log.info('parent found', node);
+        return node.items;
+      } else {
+        if (node.items) {
+          this.searchSiblings(node.items, currentNode);
+        }
+      }
+    }
+  }
+
+  isParent(node, currentNode) {
+    if (node.items) {
+      const children = node.items;
+      OHIF.log.info('Checking children', children);
+      for (var i = 0; i < children.length; i++) {
+        if (children[i].key === currentNode.key) {
+          OHIF.log.info('match found');
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   filterItems() {
     const filteredItems = [];
@@ -104,13 +141,20 @@ export class SelectTree extends Component {
 
   getTreeItems() {
     const storageKey = 'SelectTree';
-    let treeItems;
+    let treeItems = null;
 
     if (this.state.searchTerm) {
       treeItems = this.filterItems();
     } else if (this.state.currentNode) {
-      treeItems = cloneDeep(this.state.currentNode.items);
+      if (this.state.currentNode.items) {
+        treeItems = cloneDeep(this.state.currentNode.items);
+        OHIF.log.info('Got kids', treeItems);
+      } else {
+        treeItems = this.getNeighbours(this.state.currentNode);
+        OHIF.log.info('Got Siblings:', treeItems);
+      }
     } else {
+      OHIF.log.info('got nothing, reset selection');
       treeItems = cloneDeep(this.props.items);
     }
 
@@ -170,13 +214,18 @@ export class SelectTree extends Component {
   };
 
   onSelected = (event, item) => {
+    OHIF.log.info('root onSelected', item);
+    OHIF.log.info('state', this.state);
     if (this.isLeafSelected(item)) {
+      OHIF.log.info('leaf selected', item);
       this.setState({
         searchTerm: null,
-        currentNode: null,
-        value: null,
+        currentNode: item,
+        value: item.value,
       });
+      OHIF.log.info('after leaf selected', this.state);
     } else {
+      OHIF.log.info('parent selected', this.state);
       this.setState({
         currentNode: item,
       });
@@ -185,6 +234,7 @@ export class SelectTree extends Component {
   };
 
   onBreadcrumbSelected = () => {
+    OHIF.log.info('breadcrumb selected');
     this.setState({
       currentNode: null,
     });
