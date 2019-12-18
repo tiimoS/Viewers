@@ -1,4 +1,5 @@
 import { TypeSafeCollection } from '../classes/TypeSafeCollection';
+import { OHIF } from '@ohif/core';
 
 const studyMetadataList = new TypeSafeCollection();
 
@@ -7,6 +8,8 @@ function add(studyMetadata) {
 }
 
 function get(studyInstanceUID) {
+  OHIF.log.info('studyinstanceuid', studyInstanceUID);
+  OHIF.log.info('studyMetadatalist', studyMetadataList);
   return studyMetadataList.findBy({ studyInstanceUID });
 }
 

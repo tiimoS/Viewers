@@ -1,20 +1,13 @@
 import './SelectTree.styl';
 
 import React, { Component } from 'react';
-
-import { Icon } from './../../elements/Icon';
 import InputRadio from './InputRadio.js';
 import PropTypes from 'prop-types';
 import SelectTreeBreadcrumb from './SelectTreeBreadcrumb.js';
-import cloneDeep from 'lodash.clonedeep';
-import { OHIF } from '@ohif/core';
 
 export class SelectTree extends Component {
   static propTypes = {
     autoFocus: PropTypes.bool,
-    searchEnabled: PropTypes.bool,
-    selectTreeFirstTitle: PropTypes.string,
-    selectTreeSecondTitle: PropTypes.string,
     /** Called when 'componentDidUpdate' is triggered */
     onComponentChange: PropTypes.func,
     /** [{ label, value, items[]}] - An array of items than can be expanded to show child items */
@@ -24,9 +17,6 @@ export class SelectTree extends Component {
   };
 
   static defaultProps = {
-    searchEnabled: true,
-    autoFocus: true,
-    selectTreeFirstTitle: 'First Level itens',
     items: [],
   };
 
@@ -34,29 +24,22 @@ export class SelectTree extends Component {
     super(props);
 
     this.state = {
-      searchTerm: null,
-      currentNode: null,
       value: null,
+      treeItems: this.getMenuItems(props.items),
+      parentNode: null,
+      prevTreeItemsPath: [],
+      clickPath: [],
     };
   }
 
   render() {
-    const treeItems = this.getTreeItems();
-
     return (
       <div className="selectTree selectTreeRoot">
         <div className="treeContent">
-          {this.headerItem()}
           <div className="treeOptions">
-            {this.state.currentNode && this.state.currentNode.value && (
-              <SelectTreeBreadcrumb
-                onSelected={this.onBreadcrumbSelected}
-                label={this.state.currentNode.label}
-                value={this.state.currentNode.value}
-              />
-            )}
+            {this.getBreadCrumbs()}
             <div className="treeInputsWrapper">
-              <div className="treeInputs">{treeItems}</div>
+              <div className="treeInputs">{this.state.treeItems}</div>
             </div>
           </div>
         </div>
@@ -65,7 +48,6 @@ export class SelectTree extends Component {
   }
 
   componentDidUpdate = () => {
-    OHIF.log.info('update!');
     if (this.props.onComponentChange) {
       this.props.onComponentChange();
     }
@@ -73,157 +55,74 @@ export class SelectTree extends Component {
 
   isLeafSelected = item => item && !Array.isArray(item.items);
 
-  getLabelClass = item => {
-    let labelClass = 'treeLeaf';
-    if (this.state.searchTerm || Array.isArray(item.items)) {
-      labelClass = 'treeNode';
-    }
-    return labelClass;
-  };
-
-  getNeighbours(currentNode) {
-    OHIF.log.info('Getting siblings...');
-    const siblings = this.searchSiblings(currentNode);
-    OHIF.log.info('siblings found', siblings);
-    return siblings;
-  }
-
-  searchSiblings = currentNode => {
-    const rootItems = cloneDeep(this.props.items);
-    const allNodes = this.flatArray(rootItems);
-    const parentNode = allNodes.find(
-      node =>
-        node.items && node.items.some(child => child.key === currentNode.key)
-    );
-    OHIF.log.info('parentNode', parentNode);
-    return parentNode.items;
-  };
-
-  flatArray = obj => {
-    const array = Array.isArray(obj) ? obj : [obj];
-    return array.reduce((acc, value) => {
-      acc.push(value);
-      if (value.items) {
-        acc = acc.concat(this.flatArray(value.items));
-      }
-      return acc;
-    }, []);
-  };
-
-  filterItems() {
-    const filteredItems = [];
-    const rawItems = cloneDeep(this.props.items);
-    rawItems.forEach(item => {
-      if (Array.isArray(item.items)) {
-        item.items.forEach(item => {
-          const label = item.label.toLowerCase();
-          const searchTerm = this.state.searchTerm.toLowerCase();
-          if (label.indexOf(searchTerm) !== -1) {
-            filteredItems.push(item);
-          }
-        });
-      } else {
-        const label = item.label.toLowerCase();
-        const searchTerm = this.state.searchTerm.toLowerCase();
-        if (label.indexOf(searchTerm) !== -1) {
-          filteredItems.push(item);
-        }
-      }
-    });
-    return filteredItems;
-  }
-
-  getTreeItems() {
-    const storageKey = 'SelectTree';
-    let treeItems = cloneDeep(this.props.items);
-
-    if (this.state.searchTerm) {
-      treeItems = this.filterItems();
-    } else if (this.state.currentNode) {
-      if (this.state.currentNode.items) { // node with children
-        treeItems = cloneDeep(this.state.currentNode.items);
-      } else { // leaf node
-        treeItems = this.getNeighbours(this.state.currentNode);
-      }
-    }
-
-    return treeItems.map((item, index) => {
-      let itemKey = index;
-      if (this.state.currentNode) {
-        itemKey += `_${this.state.currentNode.value}`;
-      }
-      return (
-        <InputRadio
-          key={itemKey}
-          id={`${storageKey}_${item.value}`}
-          name={index}
-          itemData={item}
-          value={item.value}
-          label={item.label}
-          labelClass={this.getLabelClass(item)}
-          onSelected={this.onSelected}
-        />
-      );
-    });
-  }
-
-  headerItem = () => {
-    let title = this.props.selectTreeFirstTitle;
-    if (this.state.currentNode && this.props.selectTreeSecondTitle) {
-      title = this.props.selectTreeSecondTitle;
-    }
-
-    return (
-      <div className="wrapperLabel treeHeader">
-        <div className="wrapperText">{title}</div>
-        {this.props.searchEnabled && (
-          <div className="wrapperSearch">
-            <div className="searchIcon">
-              <Icon name="search" />
-            </div>
-            <input
-              type="text"
-              className="searchInput"
-              placeholder="Search labels"
-              autoFocus={this.props.autoFocus}
-              onChange={this.searchLocations}
-              value={this.state.searchTerm ? this.state.searchTerm : ''}
-            />
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  searchLocations = evt => {
-    this.setState({
-      currentNode: null,
-      searchTerm: evt.currentTarget.value,
-    });
-  };
-
   onSelected = (event, item) => {
-    OHIF.log.info('root onSelected', item);
-    OHIF.log.info('state', this.state);
-    if (this.isLeafSelected(item)) {
+    this.setState({
+      value: item.value,
+    });
+    // Item has children nodes, load new state and next leve menu items
+    if (item.items) {
+      let clickPath = this.state.clickPath;
+      clickPath.push(this.state.parentNode);
+
+      let path = this.state.prevTreeItemsPath;
+      path.push(this.state.treeItems);
+
+      const treeItems = this.getMenuItems(item.items);
+
       this.setState({
-        searchTerm: null,
-        currentNode: item,
-        value: item.value,
-      });
-    } else {
-      this.setState({
-        currentNode: item,
-        value: item.value,
+        parentNode: item,
+        clickPath: clickPath,
+        prevTreeItemsPath: path,
+        treeItems: treeItems,
       });
     }
     return this.props.onSelected(event, item);
   };
 
   onBreadcrumbSelected = () => {
-    OHIF.log.info('breadcrumb selected');
+    let path = this.state.prevTreeItemsPath;
+    let prevItems = path.pop();
+
+    let prevValue = this.state.parentNode.value;
+
+    let clickPath = this.state.clickPath;
+    let prevParent = clickPath.pop();
+
     this.setState({
-      currentNode: null,
+      prevTreeItemsPath: path,
+      clickPath: clickPath,
+      parentNode: prevParent,
+      treeItems: prevItems,
+      value: prevValue,
     });
   };
+
+  getMenuItems(newTreeItems) {
+    const storageKey = 'SelectTree';
+    return newTreeItems.map((item, index) => {
+      return (
+        <InputRadio
+          key={item.key}
+          id={`${storageKey}_${item.value}`}
+          itemData={item}
+          value={item.value}
+          label={item.label}
+          labelClass={'treeLeaf'}
+          onSelected={this.onSelected}
+        />
+      );
+    });
+  }
+
+  getBreadCrumbs() {
+    if (this.state.parentNode) {
+      return (
+        <SelectTreeBreadcrumb
+          onSelected={this.onBreadcrumbSelected}
+          label={this.state.parentNode.label}
+          value={this.state.parentNode.value}
+        />
+      );
+    }
+  }
 }

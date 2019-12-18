@@ -1,33 +1,42 @@
 import { Component } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withStyles } from '@material-ui/core/styles';
+import MenuItem from '@material-ui/core/MenuItem';
+import ListItemText from '@material-ui/core/ListItemText';
+
+const StyledMenuItem = withStyles(theme => ({
+  root: {
+    '&:hover': {
+      backgroundColor: '#d5d5d5',
+      cursor: 'pointer',
+    },
+    '&:focus': {
+      backgroundColor: '#337ab7',
+      '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+        color: theme.palette.common.white,
+        cursor: 'pointer',
+      },
+    },
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    cursor: 'pointer',
+  },
+}))(MenuItem);
 
 export default class InputRadio extends Component {
   static propTypes = {
-    value: PropTypes.string,
+    value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     itemData: PropTypes.object.isRequired,
-    labelClass: PropTypes.string,
-    id: PropTypes.string.isRequired,
     onSelected: PropTypes.func.isRequired,
   };
 
   render() {
-    const labelClass = this.props.labelClass ? this.props.labelClass : '';
     return (
-      <label
-        className={'wrapperLabel radioLabel ' + labelClass}
-        htmlFor={this.props.id}
-      >
-        <input
-          type="radio"
-          id={this.props.id}
-          className="radioInput"
-          value={this.props.value}
-          onChange={this.onSelected}
-        />
-        <span className="wrapperText">{this.props.label}</span>
-      </label>
+      <StyledMenuItem onClick={this.onSelected}>
+        <ListItemText primary={this.props.label} value={this.props.value} />
+      </StyledMenuItem>
     );
   }
 

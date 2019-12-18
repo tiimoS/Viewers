@@ -165,6 +165,7 @@ class Viewer extends Component {
   };
 
   onMeasurementsUpdated = measurements => {
+    OHIF.log.info('measurements', measurements);
     if (this.props.onMeasurementsUpdated) {
       this.props.onMeasurementsUpdated(measurements);
     }

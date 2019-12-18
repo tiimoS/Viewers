@@ -6,7 +6,6 @@ import { Icon } from './../../elements/Icon';
 export default class SelectTreeBreadcrumb extends Component {
   static propTypes = {
     label: PropTypes.string.isRequired,
-    value: PropTypes.string.isRequired,
     onSelected: PropTypes.func.isRequired,
   };
 
@@ -21,8 +20,8 @@ export default class SelectTreeBreadcrumb extends Component {
             type="radio"
             id="selectTreeBreadcrumb"
             className="treeNode radioInput"
-            value={this.props.value}
-            onChange={this.props.onSelected}
+            value={this.props.label}
+            onClick={this.props.onSelected}
           />
           <span className="wrapperText">
             <span className="backIcon">

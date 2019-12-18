@@ -1,6 +1,6 @@
-import React, { PureComponent } from 'react';
-import { OHIF } from '@ohif/core';
+import React from 'react';
 import { SelectTree } from '../..';
+import PropTypes from 'prop-types';
 
 const nodeData = [
   {
@@ -8,35 +8,35 @@ const nodeData = [
     label: 'Bone points',
     value: 'Bone points',
     icon: '',
-    selected: false,
+    level: 0,
     items: [
       {
         key: '1.2',
         label: 'Coccyg',
         value: 'Coccyg',
         icon: '',
-        selected: false,
+        level: 1,
       },
       {
         key: '1.3',
         label: 'Ischial spine left',
         value: 'Ischial spine left',
         icon: '',
-        selected: false,
+        level: 1,
       },
       {
         key: '1.4',
         label: 'Ischial spine right',
         value: 'Ischial spine right',
         icon: '',
-        selected: false,
+        level: 1,
       },
       {
         key: '1.5',
         label: 'Symphysis',
         value: 'Symphysis',
         icon: '',
-        selected: false,
+        level: 1,
       },
     ],
   },
@@ -45,92 +45,93 @@ const nodeData = [
     label: 'Organ points',
     value: 'Organ points',
     icon: '',
-    selected: false,
+    level: 0,
     items: [
       {
         key: '2.1',
         label: 'Anorectum',
         value: 'Anorectum',
         icon: '',
-        selected: false,
+        level: 1,
       },
       {
         key: '2.2',
         label: 'Bladder',
         value: 'Bladder',
         icon: '',
-        selected: false,
+        level: 1,
       },
       {
         key: '2.3',
         label: 'Cervix',
         value: 'Cervix',
         icon: '',
-        selected: false,
+        level: 1,
       },
     ],
   },
   {
     key: '3.0',
     label: 'Muscle points',
+    value: 'Muscle points',
     icon: '',
-    selected: false,
+    level: 0,
     items: [
       {
         key: '3.1',
         label: 'Iliococcygeus',
         value: 'Iliococcygeus',
         icon: '',
-        selected: false,
+        level: 1,
         items: [
           {
             key: '3.1.1',
             label: 'Origin',
             value: 'Iliococcygeus Origin',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.1.1.1',
                 label: 'Right',
                 value: 'Iliococcygeus Origin Right',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.1.1.1.1',
                     label: '1',
                     value: 'Iliococcygeus Origin Right 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.1.1.1.2',
                     label: '2',
                     value: 'Iliococcygeus Origin Right 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.1.1.1.3',
                     label: '3',
                     value: 'Iliococcygeus Origin Right 3',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.1.1.1.4',
                     label: '4',
                     value: 'Iliococcygeus Origin Right 4',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.1.1.1.5',
                     label: 'x',
                     value: 'Iliococcygeus Origin Right X',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -139,42 +140,42 @@ const nodeData = [
                 label: 'Left',
                 value: 'Iliococcygeus Origin Left',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.1.1.2.1',
                     label: '1',
                     value: 'Iliococcygeus Origin Left 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.1.1.2.2',
                     label: '2',
                     value: 'Iliococcygeus Origin Left 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.1.1.2.3',
                     label: '3',
                     value: 'Iliococcygeus Origin Left 3',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.1.1.2.4',
                     label: '4',
                     value: 'Iliococcygeus Origin Left 4',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.1.1.2.5',
                     label: 'x',
                     value: 'Iliococcygeus Origin Left X',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -185,21 +186,21 @@ const nodeData = [
             label: 'Insertion',
             value: 'Iliococcygeus Insertion',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.1.2.1',
                 label: '1',
                 value: 'Iliococcygeus Insertion 1',
                 icon: '',
-                selected: false,
+                level: 3,
               },
               {
                 key: '3.1.2.2',
                 label: '2',
                 value: 'Iliococcygeus Insertion 2',
                 icon: '',
-                selected: false,
+                level: 3,
               },
             ],
           },
@@ -210,42 +211,42 @@ const nodeData = [
         label: 'Puboanalis',
         value: 'Puboanalis',
         icon: '',
-        selected: false,
+        level: 1,
         items: [
           {
             key: '3.2.1',
             label: 'Insertion',
             value: 'Puboanalis Insertion',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.2.1.1',
                 label: 'Right',
                 value: 'Puboanalis Insertion Right',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.2.1.1.1',
                     label: '1',
                     value: 'Puboanalis Insertion Right 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.2.1.1.2',
                     label: '2',
                     value: 'Puboanalis Insertion Right 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.2.1.1.3',
                     label: '3',
                     value: 'Puboanalis Insertion Right 3',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -254,28 +255,28 @@ const nodeData = [
                 label: 'Left',
                 value: 'Puboanalis Insertion Left',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.2.1.2.1',
                     label: '1',
                     value: 'Puboanalis Insertion Left 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.2.1.2.2',
                     label: '2',
                     value: 'Puboanalis Insertion Left 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.2.1.2.3',
                     label: '3',
                     value: 'Puboanalis Insertion Left 3',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -288,28 +289,28 @@ const nodeData = [
         label: 'Puboperinealis',
         value: 'Puboperinealis',
         icon: '',
-        selected: false,
+        level: 1,
         items: [
           {
             key: '3.3.1',
             label: 'Insertion',
             value: 'Puboperinealis Insertion',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.3.1.1',
                 label: 'Right',
                 value: 'Puboperinealis Insertion Right',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.3.1.1.1',
                     label: '1',
                     value: 'Puboperinealis Insertion Right 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -318,14 +319,14 @@ const nodeData = [
                 label: 'Left',
                 value: 'Puboperinealis Insertion Left',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.3.1.2.1',
                     label: '1',
                     value: 'Puboperinealis Insertion Left 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -338,35 +339,35 @@ const nodeData = [
         label: 'Pubovaginalis',
         value: 'Pubovaginalis',
         icon: '',
-        selected: false,
+        level: 1,
         items: [
           {
             key: '3.4.1',
             label: 'Insertion',
             value: 'Pubovaginalis Insertion',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.4.1.1',
                 label: 'Right',
                 value: 'Pubovaginalis Insertion Right',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.4.1.1.1',
                     label: '1',
                     value: 'Pubovaginalis Insertion Right 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.4.1.1.2',
                     label: '2',
                     value: 'Pubovaginalis Insertion Right 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -375,21 +376,21 @@ const nodeData = [
                 label: 'Left',
                 value: 'Pubovaginalis Insertion Left',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.4.1.2.1',
                     label: '1',
                     value: 'Pubovaginalis Insertion Left 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.4.1.2.2',
                     label: '2',
                     value: 'Pubovaginalis Insertion Left 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -402,56 +403,56 @@ const nodeData = [
         label: 'Pubovisceralis',
         value: 'Pubovisceralis',
         icon: '',
-        selected: false,
+        level: 1,
         items: [
           {
             key: '3.5.1',
             label: 'Origin',
             value: 'Pubovisceralis Origin',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.5.1.1',
                 label: 'Right',
                 value: 'Pubovisceralis Origin Right',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.5.1.1.1',
                     label: '1',
                     value: 'Pubovisceralis Origin Right 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.5.1.1.2',
                     label: '2',
                     value: 'Pubovisceralis Origin Right 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.5.1.1.3',
                     label: '3',
                     value: 'Pubovisceralis Origin Right 3',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.5.1.1.4',
                     label: '4',
                     value: 'Pubovisceralis Origin Right 4',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.5.1.1.5',
                     label: 'x',
                     value: 'Pubovisceralis Origin Right X',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -460,42 +461,42 @@ const nodeData = [
                 label: 'Left',
                 value: 'Pubovisceralis Origin Left',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.5.1.2.1',
                     label: '1',
                     value: 'Pubovisceralis Origin Left 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.5.1.2.2',
                     label: '2',
                     value: 'Pubovisceralis Origin Left 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.5.1.2.3',
                     label: '3',
                     value: 'Pubovisceralis Origin Left 3',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.5.1.2.4',
                     label: '4',
                     value: 'Pubovisceralis Origin Left 4',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.5.1.2.5',
                     label: 'x',
                     value: 'Pubovisceralis Origin Left X',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -508,35 +509,35 @@ const nodeData = [
         label: 'Puborectalis',
         value: 'Puborectalis',
         icon: '',
-        selected: false,
+        level: 1,
         items: [
           {
             key: '3.7.1',
             label: 'Origin',
             value: 'Puborectalis Origin',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.7.1.1',
                 label: 'Right',
                 value: 'Puborectalis Origin Right',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.7.1.1.1',
                     label: '1',
                     value: 'Puborectalis Origin Right 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.7.1.1.2',
                     label: '2',
                     value: 'Puborectalis Origin Right 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -545,21 +546,21 @@ const nodeData = [
                 label: 'Left',
                 value: 'Puborectalis Origin Left',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.7.1.2.1',
                     label: '1',
                     value: 'Puborectalis Origin Left 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.7.1.2.2',
                     label: '2',
                     value: 'Puborectalis Origin Left 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -570,14 +571,14 @@ const nodeData = [
             label: 'Insertion',
             value: 'Puborectalis Insertion',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.7.2.1',
                 label: '1',
                 value: 'Puborectalis Insertion 1',
                 icon: '',
-                selected: false,
+                level: 3,
               },
             ],
           },
@@ -588,35 +589,35 @@ const nodeData = [
         label: 'Coccygeus',
         value: 'Coccygeus',
         icon: '',
-        selected: false,
+        level: 1,
         items: [
           {
             key: '3.8.1',
             label: 'Insertion',
             value: 'Coccygeus Insertion',
             icon: '',
-            selected: false,
+            level: 2,
             items: [
               {
                 key: '3.8.1.1',
                 label: 'Right',
                 value: 'Coccygeus Insertion Right',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.8.1.1.1',
                     label: '1',
                     value: 'Coccygeus Insertion Right 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.8.1.1.2',
                     label: '2',
                     value: 'Coccygeus Insertion Right 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -625,21 +626,21 @@ const nodeData = [
                 label: 'Left',
                 value: 'Coccygeus Insertion Left',
                 icon: '',
-                selected: false,
+                level: 3,
                 items: [
                   {
                     key: '3.8.1.2.1',
                     label: '1',
                     value: 'Coccygeus Insertion Left 1',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                   {
                     key: '3.8.1.2.2',
                     label: '2',
                     value: 'Coccygeus Insertion Left 2',
                     icon: '',
-                    selected: false,
+                    level: 4,
                   },
                 ],
               },
@@ -651,7 +652,11 @@ const nodeData = [
   },
 ];
 
-class AnnotationDialog extends PureComponent {
+class AnnotationDialog extends React.Component {
+  static propTypes = {
+    onSubmit: PropTypes.func,
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -660,24 +665,11 @@ class AnnotationDialog extends PureComponent {
   }
 
   onSelected = (event, itemSelected) => {
-    if (itemSelected.items) {
-      OHIF.log.info('children left');
-    } else {
-      OHIF.log.info('No children left');
-    }
+    this.props.onSubmit(itemSelected.value);
   };
 
   render() {
-    OHIF.log.info('nodeData', nodeData);
-    return (
-      <SelectTree
-        items={nodeData}
-        searchEnabled={false}
-        onSelected={this.onSelected}
-        selectTreeFirstTitle={'Annotation Points'}
-        selectTreeSecondTitle={'Second Level Points'}
-      />
-    );
+    return <SelectTree items={nodeData} onSelected={this.onSelected} />;
   }
 }
 

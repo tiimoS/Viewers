@@ -1,4 +1,4 @@
-import { measurements, utils } from "@ohif/core";
+import { measurements, utils, OHIF } from "@ohif/core";
 
 const { MeasurementApi } = measurements;
 const { studyMetadataManager } = utils;
@@ -75,12 +75,14 @@ export default function jumpToRowItem(
 
   const viewportSpecificData = [];
   measurementsToJumpTo.forEach((data, viewportIndex) => {
+    OHIF.log.info('data', data);
     // Skip if there is no measurement to jump
     if (!data) {
       return;
     }
 
     const study = studyMetadataManager.get(data.studyInstanceUid);
+    OHIF.log.info('study', study);
     if (!study) {
       throw new Error("Study not found.");
     }

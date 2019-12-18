@@ -1,6 +1,5 @@
 import React, { Component, useState } from 'react';
 import PropTypes from 'prop-types';
-import { TextInput } from '@ohif/ui';
 import { OHIF } from '@ohif/core';
 
 import './SimpleDialog.styl';
@@ -27,17 +26,24 @@ class SimpleDialog extends Component {
   static InputDialog = ({ onSubmit, defaultValue, title, label, onClose }) => {
     const [value, setValue] = useState(defaultValue);
 
+    const handleChange = newValue => {
+      setValue(newValue);
+    };
+
     const onSubmitHandler = () => {
+      OHIF.log.info('onSubmitHandler', value);
       onSubmit(value);
     };
 
     return (
       <div className="InputDialog">
         <SimpleDialog
-          headerTitle="Select a point to annotate"
+          headerTitle={title}
           onClose={onClose}
           onConfirm={onSubmitHandler}
-        ></SimpleDialog>
+        >
+          <AnnotationDialog onSubmit={handleChange} />
+        </SimpleDialog>
       </div>
     );
   };
@@ -58,9 +64,7 @@ class SimpleDialog extends Component {
                 </span>
                 <h4 className="title">{this.props.headerTitle}</h4>
               </div>
-              <div className="content">
-                <AnnotationDialog />
-              </div>
+              <div className="content">{this.props.children}</div>
               <div className="footer">
                 <button className="btn btn-default" onClick={this.onClose}>
                   Cancel

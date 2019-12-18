@@ -94,16 +94,8 @@ class MeasurementTableItem extends Component {
         itemIndex={this.props.itemIndex}
         onItemClick={this.onItemClick}
       >
-        <div>
-          <div className="measurementLocation">
-            {this.props.t(this.props.measurementData.label, {
-              keySeparator: '>',
-              nsSeparator: '|',
-            })}
-          </div>
-          <div>{this.getDataDisplayText()}</div>
-          <div className="rowActions">{actionButtons}</div>
-        </div>
+        <div>{this.getDataDisplayText()}</div>
+        <div className="rowActions">{actionButtons}</div>
       </TableListItem>
     );
   };

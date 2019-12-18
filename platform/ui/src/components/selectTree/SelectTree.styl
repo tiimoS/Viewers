@@ -9,7 +9,7 @@
 
   .treeContent
     max-height: inherit;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid #c4c4c4;
     border-radius: 5px;
     background-color: #ffffff;
@@ -23,9 +23,15 @@
     padding: 5px;
     text-align: center;
 
+    .wrapperLabel
+      color: black;
+
     .wrapperText
       font-weight: bold;
       padding-bottom: 2px;
+      color: black;
+      white-space: nowrap;
+      cursor: pointer;
 
     .wrapperSearch
       width: 100%;
@@ -55,9 +61,10 @@
         box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),
           0 0 8px rgba(102, 175, 233, 0.6);
 
-  .wrapperText
-    white-space: nowrap;
-    cursor: pointer;
+  .MuiTouchRipple-root
+    border: 1px solid #d5d5d5;
+    cursor: 'pointer';
+    height: 44px;
 
   .selectTreeBreadcrumb
     .wrapperLabel
@@ -80,11 +87,13 @@
   .treeOptions
     overflow: auto;
     height: 100%;
+    color: grey;
 
     .selectTreeBreadcrumb + .treeInputsWrapper .treeInputs .treeLeaf
       border: none;
       height: initial;
       line-height: 26px;
+
 
     & > .treeInputsWrapper > .treeInputs .treeLeaf
       border-bottom: 1px solid #ccc;
@@ -104,6 +113,8 @@
     border-bottom: 1px solid #ccc;
     height: 41px;
     line-height: 41px;
+    color: black;
 
   .radioLabel .radioInput
     display: none;
+    color: black;
